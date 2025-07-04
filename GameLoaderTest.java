@@ -1,22 +1,32 @@
-
+// GameLoaderTest.java
+// Author: Mahmoud Oraby
+// Description: Basic tests for GameLoader logic (integration with Hangman)
 
 import org.junit.Test;
-import java.util.List;
-import static org.junit.Assert.*;
-/**
- *  * Hangman.java
- *  * CST338 HW01: Hangman Game
- *  * Author: Mahmoud Oraby
- *  * Date: July 2025
- *  *
 
- */
+import static org.junit.Assert.*;
+
 public class GameLoaderTest {
 
     @Test
-    public void testWordLoading() {
-        List<String> words = List.of("CIRCLE", "SQUARE", "CAKE");
-        Hangman game = new Hangman(words);
-        assertTrue(words.contains(game.getSecretWord()));
+    public void fileCreated() {
+        Hangman game = new Hangman("testWords.txt");
+        assertFalse(game.getAllWords().isEmpty());
+    }
+
+    @Test
+    public void gameLoaderTest() {
+        Hangman game = new Hangman("testWords.txt");
+        assertNotNull(game.getGuessedWord());
+        assertNotNull(game.getGuessedLetters());
+    }
+
+    @Test
+    public void gameWinTest() {
+        Hangman game = new Hangman("testWords.txt");
+        for (char c : game.getCurrentWord().toCharArray()) {
+            game.playLetter(c);
+        }
+        assertTrue(game.isWin());
     }
 }

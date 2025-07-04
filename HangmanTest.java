@@ -1,56 +1,103 @@
+// HangmanTest.java
+// Author: Mahmoud Oraby
+// Description: Unit tests for Hangman.java
+
 import org.junit.Test;
 import java.util.List;
+
 import static org.junit.Assert.*;
-/**
- *  *  * CST338 HW01: Hangman Game
- *  *  * Author: Mahmoud Oraby
- *  *  * Date: July 2025
- *  **/
+
 public class HangmanTest {
 
     @Test
-    public void testConstructorAndGetters() {
-        Hangman h = new Hangman(List.of("FISH", "CAKE"));
-        assertNotNull(h.getSecretWord());
-        assertEquals(2, h.getAllWords().size());
+    public void constructorTest() {
+        Hangman game = new Hangman();
+        assertNotNull(game.getGuessedWord());
+        assertEquals(6, game.getGuessesLeft());
+        assertEquals(3, game.getHintsLeft());
     }
 
     @Test
-    public void testGuessLetterCorrectly() {
-        Hangman h = new Hangman(List.of("FISH"));
-        assertTrue(h.guessLetter('F'));
-        assertTrue(h.getGuessedWord().startsWith("F"));
+    public void hintTest() {
+        Hangman game = new Hangman("testWords.txt");
+        int hintsBefore = game.getHintsLeft();
+        game.giveHint();
+        assertEquals(hintsBefore - 1, game.getHintsLeft());
     }
 
     @Test
-    public void testGuessLetterWrong() {
-        Hangman h = new Hangman(List.of("FISH"));
-        int before = h.getRemainingGuesses();
-        assertFalse(h.guessLetter('Z'));
-        assertEquals(before - 1, h.getRemainingGuesses());
+    public void testGetAllWords() {
+        Hangman game = new Hangman("testWords.txt");
+        List<String> words = game.getAllWords();
+        assertTrue(words.contains("FISH"));
     }
 
     @Test
-    public void testUseHint() {
-        Hangman h = new Hangman(List.of("FISH"));
-        int before = h.getRemainingHints();
-        h.useHint();
-        assertEquals(before - 1, h.getRemainingHints());
+    public void checkChooseWord() {
+        Hangman game = new Hangman("testWords.txt");
+        String word = game.getCurrentWord();
+        assertNotNull(word);
+        assertTrue(game.getAllWords().contains(word));
     }
 
     @Test
-    public void testWinLose() {
-        Hangman h = new Hangman(List.of("HI"));
-        h.guessLetter('H');
-        h.guessLetter('I');
-        assertTrue(h.hasWon());
+    public void checkLose() {
+        Hangman game = new Hangman("testWords.txt");
 
-        Hangman l = new Hangman(List.of("HI"));
-        l.guessLetter('A');
-        l.guessLetter('B');
-        l.guessLetter('C');
-        l.guessLetter('D');
-        l.guessLetter('E');
-        assertTrue(l.hasLost());
+        // Use 6 incorrect guesses (non-overlapping, not in any word)
+        char[] wrongGuesses = {'X', 'Y', 'Z', 'Q', 'V', 'B'};
+        int wrongs = 0;
+        for (char c : wrongGuesses) {
+            if (!game.getCurrentWord().contains(Character.toString(c))) {
+                game.playLetter(c);
+                wrongs++;
+            }
+            if (wrongs == 6) break;
+        }
+
+        // Retry with alternative letters if needed to ensure 6 wrong guesses
+        int backup = 0;
+        while (game.getGuessesLeft() > 0 && backup < 26) {
+            char c = (char) ('A' + backup);
+            if (!game.getCurrentWord().contains(Character.toString(c))
+                    && !game.getGuessedLetters().contains(c)) {
+                game.playLetter(c);
+            }
+            backup++;
+        }
+
+        assertTrue("Expected game to be lost (0 guesses left), but it wasn't.", game.isLose());
+    }
+
+
+    @Test
+    public void checkPlay() {
+        Hangman game = new Hangman("testWords.txt");
+        char firstLetter = game.getCurrentWord().charAt(0);
+        boolean result = game.playLetter(firstLetter);
+        assertTrue(result);
+        assertTrue(game.getGuessedWord().contains(Character.toString(firstLetter)));
+    }
+
+    @Test
+    public void checkWin() {
+        Hangman game = new Hangman("testWords.txt");
+        for (char c : game.getCurrentWord().toCharArray()) {
+            game.playLetter(c);
+        }
+        assertTrue(game.isWin());
+    }
+
+    @Test
+    public void testDisplayGameState() {
+        Hangman game = new Hangman("testWords.txt");
+        assertNotNull(game.getGuessedWord());
+        assertTrue(game.getGuessedWord().contains("_"));
+    }
+
+    @Test
+    public void readFileTest() {
+        Hangman game = new Hangman("testWords.txt");
+        assertFalse(game.getAllWords().isEmpty());
     }
 }
